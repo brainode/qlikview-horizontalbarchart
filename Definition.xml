@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ExtensionObject Label="Horizontal single barchart" Description="Horizontal single barchart" PageHeight="700">
+    <Dimension Label="Dim" Initial="" Multiple=""/>
+	<Measurement Label="Value" Initial="" TargetName="Val" />
+    <Text Label="Label" Type="text" Initial="" Expression=""/> 
+    <Text Label="2 Colors" Type="text" Initial="" Expression=""/> 
+    <Text Label="textColor" Type="color" Initial="" Expression=""/> 
+</ExtensionObject>

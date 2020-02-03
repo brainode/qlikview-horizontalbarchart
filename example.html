@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+.axis text {
+  font: 10px sans-serif;
+}
+.axis line,
+.axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+.path-line {
+  fill: none;
+  stroke: yellow;
+  stroke-width: 1.5px;
+}
+
+</style>
+<body>
+<div class="row">
+	<div class="col s10">Исполнение бюджета закупок</div>
+	<div class="col s2">86</div>
+</div>
+<div class="row">
+	<div id='stacked-bar' class="col s12"></div>
+</div>
+
+<script src="./js/d3.v4.js"></script>
+
+<script>
+var initStackedBarChart = {
+	draw: function(config) {
+		me = this,
+		domEle = config.element,
+		stackKey = config.key,
+		data = config.data,
+		margin = {top: 20, right: 20, bottom: 30, left: 50},
+		parseDate = d3.timeParse("%m/%Y"),
+		width = 960 - margin.left - margin.right,
+		height = 70 - margin.top - margin.bottom,
+		xScale = d3.scaleLinear().rangeRound([0, width]),
+		yScale = d3.scaleBand().rangeRound([height, 0]).padding(0.1),
+		color = d3.scaleOrdinal().domain(data).range(["#e5ff65","#b852cc","#ffa64d","#6df2bb","#a61168","#e64560","#73a2ff","#2944cc","#33cc4c","#ff4040"]),
+		xAxis = d3.axisBottom(xScale),
+		yAxis =  d3.axisLeft(yScale).tickFormat(d3.timeFormat("%b")),
+		svgBare = d3.select("#"+domEle).append("svg")
+				.attr("width", width + margin.left + margin.right)
+				.attr("height", height + margin.top + margin.bottom);
+    
+		var stack = d3.stack()
+			.keys(stackKey)
+			/*.order(d3.stackOrder)*/
+			.offset(d3.stackOffsetNone);
+	
+		var layers= stack(data);
+			data.sort(function(a, b) { return b.total - a.total; });
+			yScale.domain(data.map(function(d) { return parseDate(d.date); }));
+			xScale.domain([0, 100]);
+
+
+    var iterator = 0;
+
+		var defs = svgBare.append("defs").selectAll()
+			  .data(layers).enter();
+		defs.selectAll()
+			  .data(function(d) {return d; })
+			.enter().append("clipPath").attr("id", function(d){if(d[0]==0){return "round-corner-left";}else{return "round-corner-right"}})
+			.append("rect")
+			  .attr("y", function(d) { return yScale(parseDate(d.data)); })
+			  .attr("x", function(d) {if(d[0]==0){return xScale(d[0]);}else{return xScale(d[0])-10;}  })
+			  .attr("height", yScale.bandwidth())
+			  .attr("width", function(d) { if(d[0]==0){return xScale(d[1]) - xScale(d[0])+10;}else{return xScale(d[1]) - xScale(d[0])+10;}  }).attr("rx",5).attr("ry",5);
+			
+		var	svg = svgBare
+				.append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+		var layer = svg.selectAll(".layer")
+			.data(layers)
+			.enter().append("g")
+			.attr("class", "layer")
+			.style("fill", function(d, i) { return color(i); });
+
+		  layer.selectAll()
+			  .data(function(d) {return d; })
+			.enter().append("rect")
+			  .attr("y", function(d) { return yScale(parseDate(d.data)); })
+			  .attr("x", function(d) { console.log("This data works: ");console.log(d);return xScale(d[0]); })
+			  .attr("height", yScale.bandwidth())
+			  .attr("width", function(d) { return xScale(d[1]) - xScale(d[0]) })
+	        .attr("class", function(d) { if(d[0]==0){ return "first";}else{return "second";} });
+
+			d3.select(".second").attr("clip-path","url(#round-corner-right)");
+			d3.select(".first").attr("clip-path","url(#round-corner-left)");
+	}
+}
+var data = [{"success":78,"unsuccess":22}];
+var key = ["success","unsuccess"];
+initStackedBarChart.draw({
+	data: data,
+	key: key,
+	element: 'stacked-bar'
+});
+</script>
